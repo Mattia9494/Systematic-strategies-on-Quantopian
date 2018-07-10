@@ -1,0 +1,122 @@
+Overnight returns of US ETFs and futures can forecast first and last 30 mins
+Relevant papers
+“Overnight returns of stock indexes: Evidence from ETFs and futures”
+Project summary:
+The paper suggests that It is possible to predict the direction of the “first 30 minutes of trading” and of the “last 30 minutes of trading” for ETFs and futures, based on their result of the overnight returns. In detail, the overnight returns seems to have a positive correlation with the “last 30 minutes of trading” and a negative correlation with the “first 30 minutes of trading”.
+
+The strategy started by finding a way to properly time the functions individually:
+First 30 minutes of trading of today
+Overnight (from yesterday’s closing to today’s opening)
+Last 30 minutes of trading of yesterday
+Right after the goal was to link the 3 functions to see if it was actually possible to obtain positive returns. The strategy implemented has been:
+Step 1: I took a long (short) position overnight on the SPY if I have a positive (negative) return in the “last 30 minutes of trading” today. 
+Step 2: When the market opens in the morning, if the “overnight return” happens to have a positive (negative) return I went short (long) the “first 30 minutes of trading”.
+
+After the algorithm was in place I worked on a linear regression to see if there was any kind of linear correlation between the dimension of the returns. For instance, if the “last 30 minutes of training” give a high positive return is the “overnight return” positive and high as well? The goal was to reduce the transaction costs by avoiding unnecessary transactions.
+The linear regressions put in place were: “overnight returns vs first 30 minutes of trading returns” and “overnight returns vs last 30 minutes of trading returns”.
+Unfortunately both the regression stated that there was no linear correlation between these two elements.
+
+The further step was to work with a universe of stocks instead of the SPY. In this case I went long overnight on the top positive 5% of the stocks which had a better return in the “last 30 minutes of trading” while going short in the bottom negative 5% stocks from a universe of 500 stocks. In the morning I will go short in the top 25 performing stocks and go long in the bottom 25 performing stocks. Moreover, I implemented the “Per Share Commission” and “Volume Share Slippage” to make the strategy more realistic.
+
+To improve the overall performance, I increased the universe to work with up to 1500 stocks instead of 500, with a contained leverage of 0.3 both for long/short positions and by working with variable weights instead of equal ones. 
+
+Moreover, I tried to implement a factor in order to filter my universe of stocks in the pipeline according to their P/E ratio and to pick only those with the highest P/E ratio. The idea was that if the P/E ratio is high the stock might be more of a temporary "fad" and by consequence more exposed to higher volatility during the day while the returns would appear overnight. Unfortunately this approach was not successful in any combination implemented; on the contrary I have been able to improve the strategy by filtering only the most liquid stocks and those belonging to the technology sector which has been shown to have the most relevant performance in the paper. However, this decision leads to a “sector bias”: this has been solved by increasing the number of sectors screened which are: technology, industrials, utilities, energy, health care, financials. The reason why I picked these sectors is that, in the paper, they appear to be the most relevant for the study in terms of overnight returns and, therefore, have the best performance.
+The last improvements have been by increasing the leverage more from 0.3 to 0.75, which led to an important improvement in performance, without relevant losses in terms of low volatility. The concluding step has been the final debugging of the code.
+27/11/17
+Tasks
+Read the paper
+Create hypothesis for trading model
+Results
+The paper suggests that It is possible to predict the direction of the “first 30 minutes of trading” and of the “last 30 minutes of trading” for ETFs and futures, based on their result of the overnight returns. In detail, the overnight returns seems to have a positive correlation with the “last 30 minutes of trading” and a negative correlation with the “first 30 minutes of trading”. 
+The strategy that I will try to implement is the following: 
+If I have a positive return in the “last 30 minutes of trading” today, I expect a positive “overnight return” therefore I will take a long position on the ETF/future. If the “overnight return” happens to have a positive return I will short the “first 30 minutes of trading” when the market opens in the morning.
+I will do the exact opposite if the “last 30 minutes of trading” today happen to be negative.
+5/12/17
+Tasks
+Backtests: 
+Overnight only
+Last 30 mins + Overnight
+First 30 mins without Overnight
+SPY ETF from 2007
+Results
+Backtests:
+Overnight only: https://www.quantopian.com/posts/holding-spy-overnight
+Last 30 mins + Overnight: https://www.quantopian.com/posts/holding-spy-overnight 
+First 30 mins without Overnight: https://www.quantopian.com/posts/overnight-as-an-indicator?utm_campaign=overnight-as-an-indicator&utm_medium=email&utm_source=forums
+2/01/18
+Tasks
+1) Put the 3 previous strategies together in order to predict the index movement, then move to stocks. 
+2) Do a quantile table for the predicted movements of the S&P500 stocks
+3) Do a linear regression to see which relationship is more reliable
+Results
+The strategy combined seems to work pretty well: https://www.quantopian.com/posts/overnight-prediction
+This is my quantile table and linear regression notebook: https://www.quantopian.com/posts/intraday-regression-help
+Usually a linear regression is done over an interval of time (from 2007 to 2017), I just couldn’t understand how to do a linear regression for a specific moment of the day (overnight returns vs first 30 minutes of trading, to be precise) over the required interval of time.
+23/01/18
+Tasks
+Fixing the linear regressions:
+Overnight vs first 30 minutes of trading
+Overnight vs last 30 minutes of trading
+If there is a linear correlation between returns, apply it in a backtest
+Results
+Overnight vs first 30 minutes of trading: https://www.quantopian.com/posts/overnight-returns-vs-first-30-minutes-of-trading-returns-linear-regression
+It doesn’t appear to have a linear correlation between the 2 therefore a backtest strategy is not applicable in this case.
+Overnight vs last 30 minutes of trading:
+https://www.quantopian.com/posts/overnight-vs-last-30-minutes-of-trading-linear-regression
+It doesn’t appear to have a linear correlation between the 2 therefore a backtest strategy is not applicable in this case.
+
+30/01/18
+Tasks
+Implement the same strategy using the pipeline universe (top 5% and bottom 5% of stocks traded)
+Results
+I have been able to implement the strategy in pipeline by predicting the first 30 minutes of trading based on the overnight behavior of the stock:
+https://www.quantopian.com/posts/unsupportedorderparameters-error 
+(backtest in my comment)
+I implemented the whole strategy using pipeline and the history function to index the values properly
+https://www.quantopian.com/posts/pipeline-and-history-function?utm_campaign=pipeline-and-history-function&utm_medium=email&utm_source=forums
+(backtest in my comment)
+06/02/18
+Tasks
+Find out why the current strategy gives me negative returns and change it in order to get positive ones.
+Results
+I have been able to turn the model into one with positive results, the issue was that overnight I was going long for the top positive returns, but I was also going short for the bottom positive returns I had in the last 30 minutes of trading.
+Instead, I should keep the long position as they are, but change the short positions with the bottom “negative” returns, not the positive ones.
+Other improvements were adding slippage, commissions and lowering the leverage both for short and long positions.
+https://www.quantopian.com/posts/pipeline-overnight?utm_campaign=pipeline-overnight&utm_medium=email&utm_source=forums
+The results are even better once I work with a universe of 1500 stocks instead of 500 stocks.
+https://www.quantopian.com/posts/pipeline-overnight?utm_campaign=pipeline-overnight&utm_medium=email&utm_source=forums
+13/02/18
+Tasks
+Write the summary of the whole trading strategy.
+Results
+The summary of the whole trading strategy is in the “project summary” section at the beginning of this paper, all the results are in the Table comparison google sheet for this course.
+20/02/18
+Tasks
+First task: Use PerShare commissions and VolumeShareSlippage instead of PerTrade commissions and FixedSlippage because they are more realistic.
+Second task: Add another factor and try to improve the code performance.
+Third task: Check if the algo can improve its performance by using variable weights instead of fixed ones.
+Forth task: update summary
+Results
+I implemented the PerShare commissions and VolumeShareSlippage which decreased my previous algo performance.
+I a tried add to filter my stocks based on the P/E ratio (I did it both for stocks with lowest P/E ratio and highest one, I posted only the one with highest P/E ratio), both the algorithms didn’t show improvements in the strategy. After that I implemented a filter in order to invest only in highly liquid stocks and that improved my result substantially. Another improvement has been the filtering of stocks from the technology sector, which if on the one hand it didn’t improve the sharpe ratio, it increased by 20% the returns.
+I implemented the variable weights only in the “overnight” function because it didn’t show relevant changes in the “first30minutes” function.
+https://www.quantopian.com/posts/p-slash-e-pipeline-filter-implementation
+27/02/18
+Tasks
+First task: find out if other combinations of the P/E give you better results
+Second task: find out whether your returns come only/mainly from long/short positions
+Third task: increase the leverage in your algo to improve performance
+Fourth task: selecting only the technology sector leads to a bias towards that sector specifically
+Results
+P/E factor didn’t give an improvement in any combination.
+My returns appear to come mostly from short positions and mainly overnight. However, both the long and the “first 30 minutes of trading” give positive returns and increase the overall Sortino ratio/alpha ratio without increasing volatility excessively. Therefore I decided not to remove any of these elements from my algorithm.
+Increased leverage from 0.3 to 0.75 for both long and short positions. Overleveraging creates unexpected results with high beta, high volatility and deeply negative returns.
+Increase the sector selection to: Technology, industrials, utilities, energy, health care, financials because were the best performing ones according to the paper.
+https://www.quantopian.com/posts/p-slash-e-pipeline-filter-implementation
+05/03/18
+Tasks
+First task: Debug code to make the first algo work
+Second task: Update summary
+Results
+Debugged code: https://www.quantopian.com/posts/p-slash-e-pipeline-filter-implementation
+
